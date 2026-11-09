@@ -1,0 +1,6 @@
+{
+  "port": 8787,
+  "solUsd": 150,
+  "adminToken": "change-me",
+  "excludedWallets": ["DEV_WALLET_HERE", "LIQUIDITY_POOL_HERE", "BURN_ADDRESS_HERE"]
+}
