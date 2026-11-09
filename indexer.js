@@ -3,7 +3,7 @@
 // Put the liquidity pool, dev and burn OWNER addresses in excludedWallets (config.json) so they never earn.
 const fs = require("fs"), path = require("path");
 const { applySell, xpOf } = require("./levels");
-const FILE = path.join(__dirname, "holders.json");
+const FILE = path.join(process.env.DATA_DIR || __dirname, "holders.json");
 const TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 
 // prev: [{wallet, balance, heldSince}]  cur: { wallet: balance }

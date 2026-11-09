@@ -9,7 +9,7 @@ const TOKEN = process.env.BOT_TOKEN, CHAT = process.env.CHAT_ID, API = process.e
 const fs = require("fs"), path = require("path");
 if (!TOKEN) { console.error("Set BOT_TOKEN (from BotFather)"); process.exit(1); }
 const TG = `https://api.telegram.org/bot${TOKEN}`;
-const FILE = path.join(__dirname, "bot-state.json");
+const FILE = path.join(process.env.DATA_DIR || __dirname, "bot-state.json");
 const st = fs.existsSync(FILE) ? JSON.parse(fs.readFileSync(FILE, "utf8")) : { reached: null, lastPayoutAt: 0, offset: 0 };
 const save = () => fs.writeFileSync(FILE, JSON.stringify(st));
 const tg = (m, b) => fetch(`${TG}/${m}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }).then((r) => r.json());

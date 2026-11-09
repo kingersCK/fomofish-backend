@@ -25,8 +25,9 @@ const PORT = process.env.PORT || cfg.port || 8787;
 const BRAND = process.env.BRAND || cfg.brand || "FomoFish";
 const EXCLUDED = new Set(cfg.excludedWallets || []);
 const SOL_USD = cfg.solUsd || 150; // replace with a live price feed
-const STATE_FILE = path.join(__dirname, "state.json");
-const HOLDERS_FILE = path.join(__dirname, "holders.json");
+const DATA = process.env.DATA_DIR || __dirname; // point DATA_DIR at a Railway Volume (e.g. /data) so state survives redeploys
+const STATE_FILE = path.join(DATA, "state.json");
+const HOLDERS_FILE = path.join(DATA, "holders.json");
 
 const readJson = (f, d) => (fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : d);
 const loadState = () => readJson(STATE_FILE, { ledger: {}, rollover: 0, history: [] });

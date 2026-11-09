@@ -47,3 +47,6 @@ This server never holds a private key. Send payouts from your own wallet or a pr
 
 ## Storage warning
 `state.json` and `holders.json` live on the container's disk, which Railway wipes on every redeploy. Before launch add a Railway Volume mounted at the app folder (or move state to a database).
+
+## Railway Volume
+Create a Volume mounted at `/data` and set `DATA_DIR=/data` in Variables. state.json, holders.json and bot-state.json are then stored there and survive redeploys.
