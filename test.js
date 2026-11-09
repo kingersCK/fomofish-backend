@@ -1,6 +1,6 @@
 // Run: node test.js
 const assert = require("assert");
-const { LEVELS, levelIndexForXp, xpToNext, applySell, HOUR, DAY } = require("./levels");
+const { LEVELS, levelIndexForXp, xpToNext, xpOf, applySell, HOUR, DAY } = require("./levels");
 const { feeShares, allocate } = require("./fees");
 const { settleHour, withdraw, nextSettlementMs } = require("./settlement");
 const { walletView, feeTable } = require("./view");
@@ -92,5 +92,36 @@ assert.strictEqual(lastView.next[0].name, "???");
 const tbl = feeTable(hs, now);
 assert.strictEqual(tbl[16].name, "?");
 assert.strictEqual(tbl[17].name, "???");
+
+// 9) Withdrawal signature proof (ed25519, as Solana wallets sign)
+const crypto = require("crypto");
+const { verifySignature, challenge, b58encode, b58decode } = require("./verify");
+const kp = crypto.generateKeyPairSync("ed25519");
+const rawPub = kp.publicKey.export({ format: "der", type: "spki" }).slice(-32);
+const walletAddr = b58encode(rawPub);
+assert.deepStrictEqual(b58decode(walletAddr), rawPub);
+const msg = challenge("FomoFish", walletAddr, "abc", 123);
+const sig = crypto.sign(null, Buffer.from(msg), kp.privateKey).toString("base64");
+assert.strictEqual(verifySignature(walletAddr, msg, sig), true);
+assert.strictEqual(verifySignature(walletAddr, msg + "x", sig), false, "changed message must fail");
+const other = b58encode(crypto.generateKeyPairSync("ed25519").publicKey.export({ format: "der", type: "spki" }).slice(-32));
+assert.strictEqual(verifySignature(other, msg, sig), false, "another wallet must fail");
+assert.strictEqual(verifySignature("nonsense", msg, sig), false);
+
+// 10) Indexer: buys keep the XP clock, big sells drop levels, new wallets start fresh, sold-out wallets leave
+const { reconcile } = require("./indexer");
+const t0 = Date.UTC(2026, 10, 9, 12), prev = [
+  { wallet: "A", balance: 100, heldSince: t0 - 7 * DAY * 1000 },
+  { wallet: "B", balance: 100, heldSince: t0 - 7 * DAY * 1000 },
+  { wallet: "C", balance: 100, heldSince: t0 - 7 * DAY * 1000 },
+  { wallet: "Z", balance: 5, heldSince: t0 - 1000 },
+];
+const rec = reconcile(prev, { A: 150, B: 50, C: 100, N: 10 }, t0);
+const g = (w) => rec.find((h) => h.wallet === w);
+assert.strictEqual(g("A").heldSince, t0 - 7 * DAY * 1000, "a buy keeps XP");
+assert.strictEqual(levelIndexForXp(xpOf(g("B").heldSince, t0)), 13, "selling 50% drops two levels");
+assert.strictEqual(g("C").heldSince, t0 - 7 * DAY * 1000);
+assert.strictEqual(g("N").heldSince, t0);
+assert.strictEqual(g("Z"), undefined);
 
 console.log(`all tests passed (${checked} occupancy combinations checked)`);

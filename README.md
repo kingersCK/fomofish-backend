@@ -32,3 +32,18 @@ Sells: sold 100% leaves; 50% or more drops 2 levels; 20% or more drops 1; under 
 ## Telegram bot
 `BOT_TOKEN=... CHAT_ID=... API=http://localhost:8787 node bot.js` (token from BotFather, never commit it).
 Commands: /fish, /top, /next, /levels. Level-up shout-outs only fire the first time anyone ever reaches a level.
+
+## Switching the name
+Set `BRAND=FomoFishy` in Railway Variables and redeploy: the bot and API use it. On the website change the `NAME` constant at the top of its script.
+
+## Live holder feed (indexer)
+Set `RPC_URL` (a Solana RPC, e.g. Helius) and `MINT` (the token mint address) and `npm start` also runs `indexer.js`, which rewrites `holders.json` every minute. Buys keep a wallet's XP, sells apply the sell rule, new wallets start at zero. Put the liquidity pool, dev and burn OWNER addresses in `config.json` under `excludedWallets`. Assumes the standard SPL token program (Token-2022 mints need a small change).
+
+## Withdrawals (wallet-signed)
+1. `GET /api/nonce/:wallet` returns a message to sign (valid 5 minutes, one use).
+2. The wallet signs it (Phantom `signMessage`); `POST /api/withdraw {wallet, signature}` with the signature in base64.
+3. If valid and at least $2 is pending, the amount becomes a payout request. `GET /api/admin/payouts` (header `x-admin-token`) lists requests; after you send the SOL, `POST /api/admin/payouts {id, txid}` marks it paid.
+This server never holds a private key. Send payouts from your own wallet or a proper signer, not from this server.
+
+## Storage warning
+`state.json` and `holders.json` live on the container's disk, which Railway wipes on every redeploy. Before launch add a Railway Volume mounted at the app folder (or move state to a database).

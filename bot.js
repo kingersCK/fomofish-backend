@@ -4,6 +4,7 @@
 // Announcements (to CHAT_ID):
 //   - a level-up shout-out ONLY when a level is reached for the first time ever (no spam)
 //   - a short post after each hourly payout
+const BRAND = process.env.BRAND || "FomoFish";
 const TOKEN = process.env.BOT_TOKEN, CHAT = process.env.CHAT_ID, API = process.env.API || "http://localhost:8787";
 const fs = require("fs"), path = require("path");
 if (!TOKEN) { console.error("Set BOT_TOKEN (from BotFather)"); process.exit(1); }
@@ -20,7 +21,7 @@ const num = (n) => Number(n).toFixed(3);
 async function onCommand(chat, text) {
   const [cmd, arg] = text.trim().split(/\s+/);
   const c = cmd.split("@")[0].toLowerCase();
-  if (c === "/start" || c === "/help") return say(chat, "🐟 <b>FomoFish</b>\n/fish &lt;wallet&gt; find your sea creature\n/top top earners\n/next time to the next payout\n/levels the fee table");
+  if (c === "/start" || c === "/help") return say(chat, `🐟 <b>${BRAND}</b>\n/fish &lt;wallet&gt; find your sea creature\n/top top earners\n/next time to the next payout\n/levels the fee table`);
   if (c === "/fish") {
     if (!arg) return say(chat, "Send /fish followed by your wallet address.");
     const v = await api("/api/wallet/" + encodeURIComponent(arg));
@@ -78,4 +79,4 @@ async function watch() {
   } catch (e) { console.error("watch", e.message); }
 }
 setInterval(watch, 60000); watch(); poll();
-console.log("FomoFish bot running");
+console.log(`${BRAND} bot running`);
